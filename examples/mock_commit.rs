@@ -1,10 +1,9 @@
 /// Mock commit example for testing purposes
-/// 
+///
 /// This example shows how to create mock commits for testing
 /// without actually making API calls
-/// 
+///
 /// Run with: cargo run --example mock_commit
-
 use noob_commit::Commit;
 
 fn main() {
@@ -34,12 +33,12 @@ fn main() {
 
     println!("Example commit messages:");
     println!("========================");
-    
+
     for (i, commit) in commit_examples.iter().enumerate() {
         println!("\n{}. Title: {}", i + 1, commit.title);
         println!("   Description: {}", commit.description);
     }
-    
+
     println!("\nThese are examples of well-formatted commit messages that follow conventional commit standards.");
     println!("When using noob-commit, the AI will generate similar messages based on your staged changes.");
 }

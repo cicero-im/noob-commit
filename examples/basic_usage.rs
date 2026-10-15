@@ -1,9 +1,8 @@
 /// Basic usage example for noob-commit
-/// 
+///
 /// This example demonstrates how to use noob-commit programmatically
-/// 
+///
 /// Run with: cargo run --example basic_usage
-
 use noob_commit::Commit;
 use std::env;
 

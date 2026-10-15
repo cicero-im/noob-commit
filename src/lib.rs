@@ -10,11 +10,12 @@ pub struct Commit {
 }
 
 #[derive(Debug, Deserialize, JsonSchema, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct CommitAdvice {
     /// Friendly message to the noob developer.
     pub message: String,
-    /// The actual commit information.
-    pub commit: Commit,
+    /// The complete commit message to pass to git.
+    pub commit_message: String,
 }
 
 impl ToString for Commit {
@@ -25,7 +26,7 @@ impl ToString for Commit {
 
 impl ToString for CommitAdvice {
     fn to_string(&self) -> String {
-        format!("{}\n\n{}", self.message, self.commit.to_string())
+        format!("{}\n\n{}", self.message, self.commit_message)
     }
 }
 
@@ -36,8 +37,11 @@ impl Commit {
 }
 
 impl CommitAdvice {
-    pub fn new(message: String, commit: Commit) -> Self {
-        Self { message, commit }
+    pub fn new(message: String, commit_message: String) -> Self {
+        Self {
+            message,
+            commit_message,
+        }
     }
 }
 
@@ -103,11 +107,28 @@ mod tests {
 
     #[test]
     fn test_commit_advice_to_string() {
-        let commit = Commit::new("Init".to_string(), "First commit".to_string());
-        let advice = CommitAdvice::new("Be careful".to_string(), commit);
+        let advice =
+            CommitAdvice::new("Be careful".to_string(), "Init\n\nFirst commit".to_string());
         let result = advice.to_string();
         assert!(result.contains("Be careful"));
         assert!(result.contains("Init"));
         assert!(result.contains("First commit"));
+    }
+
+    #[test]
+    fn commit_advice_tool_schema_has_exactly_two_required_parameters() {
+        let schema = schemars::schema_for!(CommitAdvice);
+        let schema = serde_json::to_value(schema).unwrap();
+        let object = schema.as_object().unwrap();
+        let properties = object["properties"].as_object().unwrap();
+        let required = object["required"].as_array().unwrap();
+
+        assert_eq!(properties.len(), 2);
+        assert!(properties.contains_key("message"));
+        assert!(properties.contains_key("commit_message"));
+        assert_eq!(required.len(), 2);
+        assert!(required.iter().any(|field| field == "message"));
+        assert!(required.iter().any(|field| field == "commit_message"));
+        assert_eq!(object["additionalProperties"], false);
     }
 }

@@ -413,12 +413,12 @@ async fn main() -> Result<(), ()> {
     // Handle update
     if cli.update {
         info!("🚀 Updating noob-commit to the latest version...");
-        
+
         let update_output = Command::new("cargo")
             .args(&["install", "noob-commit", "--force"])
             .output()
             .expect("Failed to run cargo install");
-        
+
         if update_output.status.success() {
             info!("✅ Successfully updated noob-commit!");
             info!("🎉 You're now running the latest version!");
@@ -567,10 +567,14 @@ async fn main() -> Result<(), ()> {
         .expect("Couldn't find diff.")
         .stdout;
     let mut output = str::from_utf8(&output).unwrap().to_string();
-    
+
     // Trim the git diff if it exceeds max_input_chars
     if cli.max_input_chars > 0 && output.len() > cli.max_input_chars {
-        info!("✂️  Trimming git diff from {} to {} characters", output.len(), cli.max_input_chars);
+        info!(
+            "✂️  Trimming git diff from {} to {} characters",
+            output.len(),
+            cli.max_input_chars
+        );
         output.truncate(cli.max_input_chars);
         output.push_str("\n... (diff truncated due to size limit)");
     }
@@ -622,7 +626,10 @@ async fn main() -> Result<(), ()> {
 
     let commit_schema = generator.subschema_for::<CommitAdvice>();
 
-    let mut system_prompt = "You are an experienced programmer who writes great commit messages. Analyze the git diff and return JSON with a 'message' for the noob developer and a 'commit' containing title and description. If you find any API keys, mention 'WARNING!!! API_KEY DETECTED IN THIS PART' in the message.".to_string();
+    let mut system_prompt = "You are an experienced programmer who writes great commit messages. Analyze the git diff and call the commit tool with exactly two parameters: 'message', a message to the noob developer, and 'commit_message', the complete commit message. If you find a secret anywhere in the diff, the message must include the exact text 'WARNING!!! API_KEY DETECTED IN THIS PART'.".to_string();
+    if !cli.no_f_ads {
+        system_prompt.push_str(" Always append 'One more noob commit by arthrod/noob-commit 🤡' to the end of the commit description.");
+    }
     if cli.br_huehuehue {
         system_prompt.push_str(" Respond in Brazilian Portuguese with a playful tone and add 'huehuehue' when it makes sense.");
     }
@@ -652,11 +659,11 @@ async fn main() -> Result<(), ()> {
                     function: FunctionObject {
                         name: "commit".to_string(),
                         description: Some(
-                            "Returns a message for the developer and a structured commit."
+                            "Returns a message for the noob developer and the complete commit message."
                                 .to_string(),
                         ),
                         parameters: Some(serde_json::to_value(commit_schema).unwrap()),
-                        strict: Some(false),
+                        strict: Some(true),
                     },
                 }])
                 .tool_choice("commit".to_string())
@@ -678,7 +685,7 @@ async fn main() -> Result<(), ()> {
         if let Some(tool_call) = tool_calls.first() {
             let advice: CommitAdvice = serde_json::from_str(&tool_call.function.arguments)
                 .expect("Couldn't parse model response.");
-            (advice.message, advice.commit.to_string())
+            (advice.message, advice.commit_message)
         } else {
             error!("No tool calls in response");
             std::process::exit(1);
