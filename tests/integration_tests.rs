@@ -27,7 +27,7 @@ fn test_version_command() {
 
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("Noob Commit"));
-    assert!(stdout.contains("0.5.0"));
+    assert!(stdout.contains("0.6.1"));
 }
 
 #[test]
@@ -150,5 +150,6 @@ mod cli_tests {
         // Test default values are set correctly
         assert!(stdout.contains("gpt-4.1-mini"));
         assert!(stdout.contains("2000"));
+        assert!(stdout.contains("50000")); // Default max-input-chars
     }
 }

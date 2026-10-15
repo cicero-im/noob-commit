@@ -391,6 +391,11 @@ fn is_crap_file(path: &str) -> bool {
 async fn main() -> Result<(), ()> {
     let cli = Cli::parse();
     env_logger::Builder::new()
+        .format(|buf, record| {
+            use std::io::Write;
+            let ts = buf.timestamp();
+            writeln!(buf, "[{}][noob-commit] {}", ts, record.args())
+        })
         .filter_level(cli.verbose.log_level_filter())
         .init();
 
@@ -402,6 +407,27 @@ async fn main() -> Result<(), ()> {
                 error!("Failed to setup alias: {}", e);
                 std::process::exit(1);
             }
+        }
+    }
+
+    // Handle update
+    if cli.update {
+        info!("🚀 Updating noob-commit to the latest version...");
+        
+        let update_output = Command::new("cargo")
+            .args(&["install", "noob-commit", "--force"])
+            .output()
+            .expect("Failed to run cargo install");
+        
+        if update_output.status.success() {
+            info!("✅ Successfully updated noob-commit!");
+            info!("🎉 You're now running the latest version!");
+            return Ok(());
+        } else {
+            let stderr = str::from_utf8(&update_output.stderr).unwrap();
+            error!("😬 Failed to update: {}", stderr);
+            error!("💡 Try running: cargo install noob-commit --force");
+            std::process::exit(1);
         }
     }
 
@@ -540,7 +566,14 @@ async fn main() -> Result<(), ()> {
         .output()
         .expect("Couldn't find diff.")
         .stdout;
-    let output = str::from_utf8(&output).unwrap();
+    let mut output = str::from_utf8(&output).unwrap().to_string();
+    
+    // Trim the git diff if it exceeds max_input_chars
+    if cli.max_input_chars > 0 && output.len() > cli.max_input_chars {
+        info!("✂️  Trimming git diff from {} to {} characters", output.len(), cli.max_input_chars);
+        output.truncate(cli.max_input_chars);
+        output.push_str("\n... (diff truncated due to size limit)");
+    }
 
     if !cli.dry_run {
         info!("Loading Data...");
@@ -722,6 +755,10 @@ async fn main() -> Result<(), ()> {
             let stderr = str::from_utf8(&push_output.stderr).unwrap();
             error!("😬 Push failed: {}\n💡 Maybe someone else pushed first? Try 'git pull' and run me again.", stderr);
         }
+    }
+
+    if !cli.no_f_ads {
+        info!("One more noob commit by arthrod/noob-commit 🤡");
     }
 
     Ok(())
