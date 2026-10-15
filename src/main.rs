@@ -78,14 +78,6 @@ struct Cli {
     max_tokens: u16,
 
     #[arg(
-        short = 'i',
-        long = "max-input-chars",
-        help = "✂️ Maximum characters of git diff to send to AI (0 = unlimited)",
-        default_value = "50000"
-    )]
-    max_input_chars: usize,
-
-    #[arg(
         short = 'm',
         long = "model",
         help = "🧠 Pick your AI overlord (gpt-4.1-mini is cheap and good enough)",
@@ -124,17 +116,10 @@ struct Cli {
     #[arg(
         short = 'a',
         long = "no-f-ads",
-        help = "🙊 Disable the silly post-commit tagline",
+        help = "🙈 Hide the silly 'one more noob commit' tagline",
         default_value_t = false
     )]
     no_f_ads: bool,
-
-    #[arg(
-        short = 'u',
-        long = "update",
-        help = "🚀 Update noob-commit to the latest version"
-    )]
-    update: bool,
 }
 
 fn setup_alias() -> Result<(), Box<dyn std::error::Error>> {
@@ -638,11 +623,11 @@ async fn main() -> Result<(), ()> {
     let commit_schema = generator.subschema_for::<CommitAdvice>();
 
     let mut system_prompt = "You are an experienced programmer who writes great commit messages. Analyze the git diff and return JSON with a 'message' for the noob developer and a 'commit' containing title and description. If you find any API keys, mention 'WARNING!!! API_KEY DETECTED IN THIS PART' in the message.".to_string();
-    if !cli.no_f_ads {
-        system_prompt.push_str(" Always append 'One more noob commit by arthrod/noob-commit 🤡' to the end of the commit description.");
-    }
     if cli.br_huehuehue {
         system_prompt.push_str(" Respond in Brazilian Portuguese with a playful tone and add 'huehuehue' when it makes sense.");
+    }
+    if !cli.no_f_ads {
+        system_prompt.push_str(" End the developer message with a super short joke followed by 'one more noob commit by arthrod/noob-commit'.");
     }
 
     let completion = client
@@ -689,7 +674,7 @@ async fn main() -> Result<(), ()> {
     }
 
     let tool_calls = &completion.choices[0].message.tool_calls;
-    let (noob_msg, commit_msg) = if let Some(tool_calls) = tool_calls {
+    let (mut noob_msg, commit_msg) = if let Some(tool_calls) = tool_calls {
         if let Some(tool_call) = tool_calls.first() {
             let advice: CommitAdvice = serde_json::from_str(&tool_call.function.arguments)
                 .expect("Couldn't parse model response.");
@@ -703,13 +688,20 @@ async fn main() -> Result<(), ()> {
         std::process::exit(1);
     };
 
+    if !cli.no_f_ads {
+        noob_msg.push_str(" 🤣 one more noob commit by arthrod/noob-commit");
+    }
+
     if cli.dry_run {
-        info!("----- COMMIT -----\n{}", commit_msg);
-        info!("----- MODEL MESSAGE -----\n{}", noob_msg);
+        info!("{}", commit_msg);
+        info!("{}", noob_msg);
         return Ok(());
     } else {
-        info!("----- COMMIT -----\n{}", commit_msg);
-        info!("----- MODEL MESSAGE -----\n{}", noob_msg);
+        info!(
+            "Proposed Commit:\n------------------------------\n{}\n------------------------------",
+            commit_msg
+        );
+        info!("Advice: {}", noob_msg);
 
         if !cli.force {
             let answer = Question::new("Do you want to continue? (Y/n)")
