@@ -149,6 +149,9 @@ nc --ok-to-send-env --yes-to-modules --yes-to-crap
 
 # Get advice in Portuguese (for BR devs)
 nc -b
+
+# Hide the funny tagline after committing
+nc -a
 ```
 
 ### Features 🔥
@@ -171,21 +174,18 @@ All the knobs you might want to turn:
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `-m, --model` | 🧠 AI model to use | `gpt-4.1-mini` |
-| `-t, --max-tokens` | 🤖 How much the AI can ramble (output tokens) | `2000` |
-| `-i, --max-input-chars` | ✂️ Maximum characters of git diff to send to AI (0 = unlimited) | `50000` |
-| `-d, --dry-run` | 🔍 Just show what would happen | `false` |
-| `-f, --force` | ⚡ Skip confirmations (YOLO mode) | `false` |
-| `-r, --review` | ✏️ Edit AI's message before committing | `false` |
-| `-e, --ok-to-send-env` | 🔓 Include .env files (dangerous!) | `false` |
-| `-M, --yes-to-modules` | 📦 Include dependency folders (huge repo!) | `false` |
-| `-c, --yes-to-crap` | 🗑️ Include build artifacts | `false` |
-| `-b, --br-huehuehue` | 🇧🇷 Output advice in Brazilian Portuguese | `false` |
-| `-a, --no-f-ads` | 🙊 Disable the silly post-commit tagline | `false` |
-| `-p, --no-push` | 📦 Commit but don't push | `false` |
-| `-s, --setup-alias` | 🛠️ Setup 'nc' alias | - |
-| `-u, --update` | 🚀 Update noob-commit to the latest version | - |
-| `-v, --verbose` | 📢 Increase verbosity (can be used multiple times) | - |
+| `-m, --model` | AI model to use | `gpt-4.1-mini` |
+| `-t, --max-tokens` | How much the AI can ramble | `2000` |
+| `-d, --dry-run` | Just show what would happen | `false` |
+| `-f, --force` | Skip confirmations | `false` |
+| `-r, --review` | Edit AI's message | `false` |
+| `-e, --ok-to-send-env` | Include .env files | `false` |
+| `-M, --yes-to-modules` | Include dependency folders | `false` |
+| `-c, --yes-to-crap` | Include build artifacts | `false` |
+| `-b, --br-huehuehue` | Output advice in Brazilian Portuguese | `false` |
+| `-a, --no-f-ads` | Hide the post-commit tagline | `false` |
+| `-p, --no-push` | Don't push to remote | `false` |
+| `-s, --setup-alias` | Setup 'nc' alias | - |
 
 ### What Gets Filtered? 🚫
 

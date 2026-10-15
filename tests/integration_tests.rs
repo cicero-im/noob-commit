@@ -75,18 +75,15 @@ fn test_non_git_directory() {
     let stderr = String::from_utf8(output.stderr).unwrap();
 
     // Should fail with noob-friendly error about not being in git repo OR no staged files
-    // OR API key error (since we're using a fake key)
+    // (depending on the git setup, it might detect as non-repo or no files)
     let valid_errors = stderr.contains("isn't a git repo")
         || stderr.contains("Nothing to commit")
         || stderr.contains("🙈")
-        || stderr.contains("🤷")
-        || stderr.contains("API key")
-        || stderr.contains("invalid_api_key")
-        || stderr.contains("Trimming git diff");
+        || stderr.contains("🤷");
 
     assert!(
         valid_errors,
-        "Expected git repo error, no files error, or API error, got: {}",
+        "Expected git repo error or no files error, got: {}",
         stderr
     );
 
@@ -120,14 +117,12 @@ mod cli_tests {
             "-e, --ok-to-send-env",
             "-p, --no-push",
             "-t, --max-tokens",
-            "-i, --max-input-chars",
             "-m, --model",
             "-s, --setup-alias",
             "-M, --yes-to-modules",
             "-c, --yes-to-crap",
             "-b, --br-huehuehue",
             "-a, --no-f-ads",
-            "-u, --update",
         ];
 
         for flag in &expected_flags {
